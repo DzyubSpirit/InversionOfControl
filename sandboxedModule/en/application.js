@@ -3,7 +3,10 @@
 // another pice of code from `framework.js`. Read README.md for tasks.
 
 // Print from the global context of application module
-console.log('From application global context');
+console.log('From application global context: wait 3 sec, please');
+setTimeout(function() {
+	console.log('From timer func')
+}, 3000);
 
 module.exports = function() {
 	// Print from the exported function context
