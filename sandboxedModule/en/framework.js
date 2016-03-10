@@ -19,13 +19,23 @@ context.global = context;
 var sandbox = vm.createContext(context);
 
 // Read an application source code from the file
-var fileName = './application.js';
-fs.readFile(fileName, function(err, src) {
-  // We need to handle errors here
-  
-  // Run an application in sandboxed context
-  var script = vm.createScript(src, fileName);
-  script.runInNewContext(sandbox);
-  // We can access a link to exported interface from sandbox.module.exports
-  // to execute, save to the cache, print to console, etc.
-});
+var appNames = process.argv.slice(2);
+if (appNames.length) {
+	appNames.forEach(function(appName) {
+		runApp(appName+'.js');
+	});
+} else {
+	runApp('application.js');
+}
+
+function runApp(fileName) {
+	fs.readFile(fileName, function(err, src) {
+	  // We need to handle errors here
+	  
+	  // Run an application in sandboxed context
+	  var script = vm.createScript(src, fileName);
+	  script.runInNewContext(sandbox);
+	  // We can access a link to exported interface from sandbox.module.exports
+	  // to execute, save to the cache, print to console, etc.
+	});
+}
