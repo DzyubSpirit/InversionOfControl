@@ -41,7 +41,7 @@ function runApp(fileName) {
 	  												  , date.getMinutes()
 	  												  , date.getSeconds());
 	  	[].unshift.call(arguments, fileName, dateString);
-	  	console.log.apply(context.console, arguments);
+	  	return console.log.apply(context.console, arguments);
 	}
 	
 	fs.readFile(fileName, function(err, src) {
