@@ -5,7 +5,7 @@
 // Print from the global context of application module
 console.log('From application global context: wait 3 sec, please');
 setTimeout(function() {
-	console.log('From timer func')
+	console.log(util.format('%s: %s: %s','From timer func', 'Vlad', 'Hi!'));
 }, 3000);
 
 module.exports = function() {
