@@ -10,19 +10,24 @@ var fs = require('fs'),
 // Create a hash and turn it into the sandboxed context which will be
 // the global context of an application
 var context = { 
-	module: {}, 
-	console: console,
+	module: {},
 	setTimeout: setTimeout,
-	util: util
+	util: util,
+	console : console 
 };
+
+// context.console.log = function() {
+// 	console.log()
+// }
 context.global = context;
-var sandbox = vm.createContext(context);
+// Add console as deep copy of first level
+addConsoleDeep(context);
 
 // Read an application source code from the file
 var appNames = process.argv.slice(2);
 if (appNames.length) {
 	appNames.forEach(function(appName) {
-		runApp(appName+'.js');
+		runApp(appName);
 	});
 } else {
 	runApp('application.js');
@@ -32,10 +37,36 @@ function runApp(fileName) {
 	fs.readFile(fileName, function(err, src) {
 	  // We need to handle errors here
 	  
+	  // Change log function
+	  context.console.log = function() {
+	  	var date = new Date();
+	  	var monthes = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
+	  				   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+	  	var dateString = util.format('%d%s%d:%d:%d:%d', date.getDate()
+	  												  , monthes[date.getMonth()]
+	  												  , date.getFullYear()
+	  												  , date.getHours()
+	  												  , date.getMinutes()
+	  												  , date.getSeconds());
+	  	[].unshift.call(arguments, fileName, ' ', dateString, ' ');
+	  	console.log.apply(context.console, arguments);
+	  }
 	  // Run an application in sandboxed context
+	  var sandbox = createSandbox(context);
 	  var script = vm.createScript(src, fileName);
 	  script.runInNewContext(sandbox);
 	  // We can access a link to exported interface from sandbox.module.exports
 	  // to execute, save to the cache, print to console, etc.
 	});
+}
+
+function createSandbox(context) {
+	return vm.createContext(context);
+}
+
+function addConsoleDeep(context) {
+	context.console = {};
+	for (var prop in console) {
+		context.console[prop] = console[prop];
+	}
 }
