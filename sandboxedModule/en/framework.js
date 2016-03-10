@@ -7,22 +7,6 @@ var fs = require('fs'),
     vm = require('vm'),
     util = require('util');
 
-// Create a hash and turn it into the sandboxed context which will be
-// the global context of an application
-var context = { 
-	module: {},
-	setTimeout: setTimeout,
-	util: util,
-	console : console 
-};
-
-// context.console.log = function() {
-// 	console.log()
-// }
-context.global = context;
-// Add console as deep copy of first level
-addConsoleDeep(context);
-
 // Read an application source code from the file
 var appNames = process.argv.slice(2);
 if (appNames.length) {
@@ -34,12 +18,20 @@ if (appNames.length) {
 }
 
 function runApp(fileName) {
-	fs.readFile(fileName, function(err, src) {
-	  // We need to handle errors here
-	  
-	  // Change log function
-	  context.console.log = function() {
-	  	var date = new Date();
+	// Create a hash and turn it into the sandboxed context which will be
+	// the global context of an application
+	var context = { 
+		module: {},
+		setTimeout: setTimeout,
+		util: util,
+		require: require
+	};
+	context.global = context;
+	// Copy console to context
+	addConsoleDeep(context);
+	// Change log function
+    context.console.log = function() {
+     	var date = new Date();
 	  	var monthes = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
 	  				   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 	  	var dateString = util.format('%d%s%d:%d:%d:%d', date.getDate()
@@ -48,9 +40,13 @@ function runApp(fileName) {
 	  												  , date.getHours()
 	  												  , date.getMinutes()
 	  												  , date.getSeconds());
-	  	[].unshift.call(arguments, fileName, ' ', dateString, ' ');
+	  	[].unshift.call(arguments, fileName, dateString);
 	  	console.log.apply(context.console, arguments);
-	  }
+	}
+	
+	fs.readFile(fileName, function(err, src) {
+	  // We need to handle errors here
+	  
 	  // Run an application in sandboxed context
 	  var sandbox = createSandbox(context);
 	  var script = vm.createScript(src, fileName);
